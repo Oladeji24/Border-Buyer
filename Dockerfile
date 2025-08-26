@@ -22,6 +22,10 @@ WORKDIR /var/www
 # Copy project files
 COPY . .
 
+# Copy entrypoint script and set permissions
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev
 
@@ -33,5 +37,5 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
 # Expose port
 EXPOSE 10000
 
-# Start Laravel server
-CMD php artisan serve --host=0.0.0.0 --port=10000
+# Use entrypoint script to run migrations and start server
+CMD ["/entrypoint.sh"]

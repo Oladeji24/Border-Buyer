@@ -1,0 +1,116 @@
+services:
+  - type: web
+    name: border-buyers
+    env: docker
+    plan: standard
+    region: ohio
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader --no-interaction
+      npm ci --production=false
+      npm run build
+      php artisan optimize:clear
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: APP_URL
+        fromService:
+          name: border-buyers
+          type: web
+          property: url
+      - key: CACHE_DRIVER
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: REDIS_URL
+        fromService:
+          name: redis
+          type: redis
+          property: connectionString
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: AWS_ACCESS_KEY_ID
+        generateValue: true
+      - key: AWS_SECRET_ACCESS_KEY
+        generateValue: true
+      - key: AWS_DEFAULT_REGION
+        value: us-east-1
+      - key: AWS_BUCKET
+        value: border-buyers-storage
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp.sendgrid.net
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_ENCRYPTION
+        value: tls
+      - key: SANCTUM_STATEFUL_DOMAINS
+        fromService:
+          name: border-buyers
+          type: web
+          property: url
+
+    # Health check path
+    healthCheckPath: /health
+    healthCheckTimeout: 30
+    healthCheckInterval: 60
+    healthCheckInitialDelay: 120
+
+    # Auto-scaling configuration
+    autoDeploy: true
+    numInstances: 2
+    maxInstances: 4
+    scaling:
+      minInstances: 1
+      maxInstances: 4
+      metrics: cpu
+      target: 70
+      multiple: 50
+
+databases:
+  - name: borderbuyersdb
+    plan: standard
+    region: ohio
+    databaseName: border_buyers
+    user: border_buyer_user
+
+redis:
+  - name: redis
+    plan: standard
+    region: ohio
+    ipAllowList: [] # only allow connections from services in this account
+
+# Environment variables that will be linked automatically
+envVars:
+  - key: DB_HOST
+    fromDatabase:
+      name: borderbuyersdb
+      property: host
+  - key: DB_PORT
+    fromDatabase:
+      name: borderbuyersdb
+      property: port
+  - key: DB_DATABASE
+    fromDatabase:
+      name: borderbuyersdb
+      property: database
+  - key: DB_USERNAME
+    fromDatabase:
+      name: borderbuyersdb
+      property: user
+  - key: DB_PASSWORD
+    fromDatabase:
+      name: borderbuyersdb
+      property: password

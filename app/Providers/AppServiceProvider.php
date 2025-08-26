@@ -44,13 +44,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        try {
-            DB::connection()->getPdo();
-            Log::info('Database connection established successfully!');
-        } catch (\Exception $e) {
-            Log::error('Could not connect to the database: ' . $e->getMessage());
-        }
-
         $this->configureCache();
         $this->registerCacheMacros();
         $this->setupModelObservers();
