@@ -26,10 +26,12 @@ RUN chown -R www-data:www-data     /var/www/html/storage     /var/www/html/boots
 RUN composer install --no-dev --no-interaction --no-plugins --no-scripts
 
 # Create entrypoint script
-RUN echo '#!/bin/bash' > /entrypoint.sh &&     echo 'php artisan key:generate' >> /entrypoint.sh &&     echo 'php artisan migrate --force' >> /entrypoint.sh &&     echo 'php artisan storage:link' >> /entrypoint.sh &&     echo 'php artisan optimize:clear' >> /entrypoint.sh &&     echo 'php-fpm' >> /entrypoint.sh &&     chmod +x /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
 
 # Set entrypoint script
 ENTRYPOINT ["/entrypoint.sh"]
+

@@ -1,8 +1,17 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-# Run migrations
+# Generate application key
+php artisan key:generate
+
+# Run database migrations
 php artisan migrate --force
 
-# Start Laravel server
-php artisan serve --host=0.0.0.0 --port=10000
+# Create storage link
+php artisan storage:link
+
+# Clear optimizations
+php artisan optimize:clear
+
+# Start PHP-FPM
+php-fpm
