@@ -33,5 +33,5 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 9000
 
 # Set entrypoint script
-CMD ["/entrypoint.sh"]
+CMD bash /entrypoint.sh
 
